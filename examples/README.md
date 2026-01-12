@@ -45,6 +45,20 @@ cd evaluation
 python eval_rag.py
 ```
 
+### Multimodal RAG
+**Location:** [`multimodal-rag/`](./multimodal-rag/)
+
+Process both text and images in a unified RAG pipeline:
+- Image analysis using LLaVA vision model
+- Combined text + image retrieval
+- Visual question answering
+- Automatic image description generation
+
+```bash
+cd multimodal-rag
+python multimodal_rag.py
+```
+
 ## Prerequisites
 
 All examples require:
@@ -83,14 +97,15 @@ All examples require:
 
 ## Example Comparison
 
-| Feature | Basic RAG | Graph RAG | Evaluation |
-|---------|-----------|-----------|------------|
-| Vector Search | Yes | Yes | Yes |
-| Knowledge Graph | No | Yes | No |
-| Entity Extraction | No | Yes | No |
-| Performance Metrics | No | No | Yes |
-| Langfuse Tracing | No | No | Yes |
-| Best For | Learning | Complex queries | Quality assurance |
+| Feature | Basic RAG | Graph RAG | Evaluation | Multimodal |
+|---------|-----------|-----------|------------|------------|
+| Vector Search | Yes | Yes | Yes | Yes |
+| Knowledge Graph | No | Yes | No | No |
+| Entity Extraction | No | Yes | No | No |
+| Image Processing | No | No | No | Yes |
+| Performance Metrics | No | No | Yes | No |
+| Langfuse Tracing | No | No | Yes | No |
+| Best For | Learning | Complex queries | Quality assurance | Visual content |
 
 ## Learn More
 

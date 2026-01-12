@@ -1,0 +1,10 @@
+/* Custom styles for Vector Search UI */
+
+.vector-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.dark-mode-transition * {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}

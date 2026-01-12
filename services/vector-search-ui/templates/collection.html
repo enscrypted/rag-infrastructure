@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ collection_name }} - Vector Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
+    <nav class="bg-white dark:bg-gray-800 shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <i class="fas fa-database text-green-600 mr-3 text-2xl"></i>
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ collection_name }}</h1>
+                    <span class="ml-4 text-sm text-gray-500">{{ document_count }} documents</span>
+                </div>
+                {% if has_vector %}
+                <span class="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                    <i class="fas fa-check-circle mr-2"></i> Vector Search Enabled
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Vector Search Box -->
+        {% if has_vector %}
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    <i class="fas fa-search mr-2"></i>Vector Similarity Search
+                </h2>
+                <div class="space-y-4">
+                    <textarea id="queryText" placeholder="Enter your search query or paste embedding vector..."
+                              class="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600" rows="3"></textarea>
+                    
+                    <div class="flex space-x-4">
+                        <input type="number" id="topK" value="10" min="1" max="100" 
+                               class="w-24 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                               placeholder="Top K">
+                        <button onclick="performSearch()" 
+                                class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                            <i class="fas fa-search mr-2"></i>Search
+                        </button>
+                        <button onclick="generateEmbedding()" 
+                                class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">
+                            <i class="fas fa-robot mr-2"></i>Generate Embedding
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults" class="hidden bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Search Results</h3>
+                <div id="resultsContainer" class="space-y-4"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Documents Table -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white">Sample Documents</h2>
+                    <button onclick="showAddDocument()" class="px-4 py-2 bg-green-600 text-white rounded-lg">
+                        <i class="fas fa-plus mr-2"></i>Add Document
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Content</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Has Embedding</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                            {% for doc in sample_docs %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    {{ doc._id|string|truncate(12) }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                    {{ doc.content|default(doc.text, true)|default(doc|string, true)|truncate(100) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    {% if doc.embedding %}
+                                    <span class="text-green-600"><i class="fas fa-check"></i></span>
+                                    {% else %}
+                                    <span class="text-gray-400"><i class="fas fa-times"></i></span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <button onclick='viewDocument({{ doc|tojson }})' class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const collectionName = "{{ collection_name }}";
+        
+        async function performSearch() {
+            const queryText = document.getElementById('queryText').value;
+            const topK = document.getElementById('topK').value;
+            
+            // Parse as vector if it looks like JSON array
+            let queryVector = null;
+            try {
+                if (queryText.startsWith('[')) {
+                    queryVector = JSON.parse(queryText);
+                }
+            } catch (e) {
+                // Not a vector, treat as text
+            }
+            
+            const response = await fetch('/api/vector-search', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    collection: collectionName,
+                    query_text: queryVector ? '' : queryText,
+                    query_vector: queryVector,
+                    k: parseInt(topK)
+                })
+            });
+            
+            const data = await response.json();
+            displayResults(data);
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('searchResults');
+            const container = document.getElementById('resultsContainer');
+            
+            if (data.error) {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            } else {
+                container.innerHTML = data.results.map(doc => `
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-sm text-gray-500">ID: ${doc.id}</span>
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                                Score: ${doc.similarity_score?.toFixed(4) || 'N/A'}
+                            </span>
+                        </div>
+                        <p class="text-gray-900 dark:text-white">${doc.content}</p>
+                    </div>
+                `).join('');
+            }
+            
+            resultsDiv.classList.remove('hidden');
+        }
+        
+        function generateEmbedding() {
+            const text = document.getElementById('queryText').value;
+            if (!text) {
+                alert('Please enter text first');
+                return;
+            }
+            
+            // Generate a simple random vector for demonstration
+            const dimensions = 1536;
+            const vector = Array.from({length: dimensions}, () => (Math.random() - 0.5) * 2);
+            document.getElementById('queryText').value = JSON.stringify(vector);
+            alert('Generated random test vector. In production, use a real embedding model.');
+        }
+        
+        function showAddDocument() {
+            const content = prompt('Enter document content:');
+            if (!content) return;
+            
+            const metadata = prompt('Enter metadata (JSON):', '{}');
+            const embedding = prompt('Enter embedding vector (JSON array, optional):');
+            
+            insertDocument(content, metadata, embedding);
+        }
+        
+        function viewDocument(doc) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-auto">
+                    <h3 class="text-lg font-medium mb-4">Document Details</h3>
+                    <pre class="text-sm bg-gray-100 dark:bg-gray-700 p-4 rounded overflow-auto">${JSON.stringify(doc, null, 2)}</pre>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            class="mt-4 px-4 py-2 bg-gray-500 text-white rounded">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function insertDocument(content, metadata, embedding) {
+            try {
+                const formData = new FormData();
+                formData.append('collection_name', collectionName);
+                formData.append('content', content);
+                formData.append('metadata', metadata);
+                if (embedding) {
+                    formData.append('embedding', embedding);
+                }
+
+                const response = await fetch('/api/insert-document', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Document inserted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to insert document'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

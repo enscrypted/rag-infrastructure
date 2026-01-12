@@ -52,7 +52,7 @@ This repository contains everything needed to deploy a comprehensive RAG/AI deve
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Vector DBs    │    │   Graph & Search │    │   LLM Tools     │
+│   Vector DBs    │    │  Graph & Search │    │   LLM Tools     │
 │                 │    │                 │    │                 │
 │ • MongoDB       │    │ • Neo4j         │    │ • Ollama        │
 │ • ChromaDB      │    │ • Elasticsearch │    │ • Open WebUI    │
@@ -65,7 +65,7 @@ This repository contains everything needed to deploy a comprehensive RAG/AI deve
          ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
          │   Storage       │    │   Docker Host   │    │   Dev Tools     │
          │                 │    │                 │    │                 │
-         │ • MinIO         │────│ • 18 Services  │────│ • Jupyter       │
+         │ • MinIO         │────│ • 18 Services   │────│ • Jupyter       │
          │ • Redis         │    │ • Docker Net    │    │ • n8n           │
          │                 │    │ • Volumes       │    │ • Multiple UIs  │
          └─────────────────┘    └─────────────────┘    └─────────────────┘

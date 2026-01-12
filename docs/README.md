@@ -37,8 +37,7 @@ Detailed documentation for each service in the stack:
 
 ### 🎯 Tutorials & Examples
 - **[Getting Started](./tutorials/getting-started.md)** - Complete beginner tutorial with working code
-- **[Basic RAG Example](../examples/basic-rag/)** - Simple document Q&A system
-- **[Advanced Patterns](./tutorials/advanced-rag.md)** - Multi-modal, hybrid search *(coming soon)*
+- **[RAG Examples](../examples/)**
 
 ## 🔗 Quick Navigation
 

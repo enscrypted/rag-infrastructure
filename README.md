@@ -326,7 +326,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [LangChain](https://github.com/langchain-ai/langchain) - LLM application framework
 - [LlamaIndex](https://github.com/run-llama/llama_index) - Data framework for LLMs
 - [ChromaDB](https://github.com/chroma-core/chroma) - Vector database
-- [RAG Cookbook](https://github.com/anthropics/rag-cookbook) - RAG implementation examples
 
 ---
 
